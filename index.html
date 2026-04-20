@@ -93,6 +93,7 @@ button:hover { background: #eee; }
 </div>
 
 <script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0j2AhejnkoCKXU155PPbeg6byWpjl_awBsy7rReNFoNCZjr5HWVg2WseAqe-r05mJJA/exec';
 window.onload = function(){
   obtenerNumero();
 }
@@ -112,7 +113,7 @@ function obtenerNumero() {
       document.getElementById('card-num').innerText = numTarjeta;
     });
 }
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0j2AhejnkoCKXU155PPbeg6byWpjl_awBsy7rReNFoNCZjr5HWVg2WseAqe-r05mJJA/exec';
+
 function enviarDrive() {
   generar();
   const alturaFrente = document.getElementById('frente').offsetHeight;
