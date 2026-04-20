@@ -103,50 +103,35 @@ function generar() {
     document.getElementById('pa' + i).innerHTML = '<strong>' + document.getElementById('a' + i).value + '</strong>';
   }
 }
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0j2AhejnkoCKXU155PPbeg6byWpjl_awBsy7rReNFoNCZjr5HWVg2WseAqe-r05mJJA/exec';
 function enviarDrive() {
   generar();
+  const alturaFrente = document.getElementById('frente').offsetHeight;
+  document.getElementById('dorso').style.height = alturaFrente + 'px';
 
-  google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID,
-    scope: 'https://www.googleapis.com/auth/drive.file',
-    callback: (tokenResponse) => {
-      const token = tokenResponse.access_token;
-      const alturaFrente = document.getElementById('frente').offsetHeight;
-      document.getElementById('dorso').style.height = alturaFrente + 'px';
-
-      document.fonts.ready.then(() => {
-        ['frente', 'dorso'].forEach((id, idx) => {
-          setTimeout(() => {
-            html2canvas(document.getElementById(id), { scale: 3, useCORS: true }).then(canvas => {
-              canvas.toBlob(blob => {
-                const metadata = {
-                  name: 'tarjeta_' + id + '_' + numTarjeta + '.png',
-                  mimeType: 'image/png',
-                  parents: [FOLDER_ID]
-                };
-                const form = new FormData();
-                form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-                form.append('file', blob);
-
-                fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-                  method: 'POST',
-                  headers: { Authorization: 'Bearer ' + token },
-                  body: form
-                }).then(r => r.json()).then(data => {
-                  if (id === 'dorso') {
-                    alert('¡Tarjetas ' + numTarjeta + ' enviadas a Drive!');
-                    numTarjeta++;
-                    document.getElementById('numFrente').innerText = numTarjeta;
-                    document.getElementById('numDorso').innerText = numTarjeta;
-                  }
-                });
-              });
-            });
-          }, idx * 700);
+  document.fonts.ready.then(() => {
+    ['frente', 'dorso'].forEach((id, idx) => {
+      setTimeout(() => {
+        html2canvas(document.getElementById(id), { scale: 3, useCORS: true }).then(canvas => {
+          const base64 = canvas.toDataURL('image/png').split(',')[1];
+          fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+              image: base64,
+              name: 'tarjeta_' + id + '_' + numTarjeta + '.png'
+            })
+          }).then(() => {
+            if (id === 'dorso') {
+              alert('¡Tarjetas enviadas!');
+              numTarjeta++;
+              document.getElementById('numFrente').innerText = numTarjeta;
+              document.getElementById('numDorso').innerText = numTarjeta;
+            }
+          });
         });
-      });
-    }
-  }).requestAccessToken();
+      }, idx * 700);
+    });
+  });
 }
 </script>
 </body>
