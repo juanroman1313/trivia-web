@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>Tarjetas Trivial Pursuit</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -58,7 +59,7 @@ button:hover { background: #eee; }
 </div>
 <div class="btns">
   <button onclick="generar()">Generar tarjetas</button>
-  <button onclick="descargar()">Descargar imágenes</button>
+  <button onclick="enviarDrive()">Enviar a Drive</button>
 </div>
 
 <!-- CARA DELANTERA -->
@@ -92,6 +93,9 @@ button:hover { background: #eee; }
 </div>
 
 <script>
+const CLIENT_ID = '237973712106-g5ar2ecfka9mb0rnq7dfr1hjpf4sg2so.apps.googleusercontent.com';
+const FOLDER_ID = '1IMgpnZshNBT9sIkvdDAlUGMx807h6a1v'; // de la URL de tu carpeta
+let numTarjeta = 226;
 function generar() {
   for (let i = 1; i <= 6; i++) {
     document.getElementById('pq' + i).innerText = document.getElementById('q' + i).value;
@@ -99,18 +103,50 @@ function generar() {
     document.getElementById('pa' + i).innerHTML = '<strong>' + document.getElementById('a' + i).value + '</strong>';
   }
 }
-function descargar() {
+function enviarDrive() {
   generar();
-  ['frente', 'dorso'].forEach((id, idx) => {
-    setTimeout(() => {
-      html2canvas(document.getElementById(id), { scale: 3, useCORS: true }).then(canvas => {
-        const a = document.createElement('a');
-        a.download = 'tarjeta_' + id + '.png';
-        a.href = canvas.toDataURL('image/png');
-        a.click();
+
+  google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: 'https://www.googleapis.com/auth/drive.file',
+    callback: (tokenResponse) => {
+      const token = tokenResponse.access_token;
+      const alturaFrente = document.getElementById('frente').offsetHeight;
+      document.getElementById('dorso').style.height = alturaFrente + 'px';
+
+      document.fonts.ready.then(() => {
+        ['frente', 'dorso'].forEach((id, idx) => {
+          setTimeout(() => {
+            html2canvas(document.getElementById(id), { scale: 3, useCORS: true }).then(canvas => {
+              canvas.toBlob(blob => {
+                const metadata = {
+                  name: 'tarjeta_' + id + '_' + numTarjeta + '.png',
+                  mimeType: 'image/png',
+                  parents: [FOLDER_ID]
+                };
+                const form = new FormData();
+                form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+                form.append('file', blob);
+
+                fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                  method: 'POST',
+                  headers: { Authorization: 'Bearer ' + token },
+                  body: form
+                }).then(r => r.json()).then(data => {
+                  if (id === 'dorso') {
+                    alert('¡Tarjetas ' + numTarjeta + ' enviadas a Drive!');
+                    numTarjeta++;
+                    document.getElementById('numFrente').innerText = numTarjeta;
+                    document.getElementById('numDorso').innerText = numTarjeta;
+                  }
+                });
+              });
+            });
+          }, idx * 700);
+        });
       });
-    }, idx * 700);
-  });
+    }
+  }).requestAccessToken();
 }
 </script>
 </body>
