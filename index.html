@@ -71,7 +71,7 @@ button:hover { background: #eee; }
     <div class="card-row"><svg class="tri-svg" width="22" height="18" viewBox="-4 0 22 18"><path d="M0,0 Q-6,9 0,18 L18,9 Z" fill="#6b3dbf"/></svg><span class="card-text" id="pq4"></span></div>
     <div class="card-row"><svg class="tri-svg" width="22" height="18" viewBox="-4 0 22 18"><path d="M0,0 Q-6,9 0,18 L18,9 Z" fill="#4a9a2e"/></svg><span class="card-text" id="pq5"></span></div>
     <div class="card-row"><svg class="tri-svg" width="22" height="18" viewBox="-4 0 22 18"><path d="M0,0 Q-6,9 0,18 L18,9 Z" fill="#e07820"/></svg><span class="card-text" id="pq6"></span></div>
-    <div class="card-num">226</div>
+    <div class="card-num" id="numFrente">226</div>
   </div>
 </div>
 
@@ -87,7 +87,7 @@ button:hover { background: #eee; }
     <div class="card-row"><svg class="tri-svg" width="22" height="18" viewBox="-4 0 22 18"><path d="M0,0 Q-6,9 0,18 L18,9 Z" fill="#6b3dbf"/></svg><span class="card-text" id="pa4"></span></div>
     <div class="card-row"><svg class="tri-svg" width="22" height="18" viewBox="-4 0 22 18"><path d="M0,0 Q-6,9 0,18 L18,9 Z" fill="#4a9a2e"/></svg><span class="card-text" id="pa5"></span></div>
     <div class="card-row"><svg class="tri-svg" width="22" height="18" viewBox="-4 0 22 18"><path d="M0,0 Q-6,9 0,18 L18,9 Z" fill="#e07820"/></svg><span class="card-text" id="pa6"></span></div>
-    <div class="card-num">226</div>
+    <div class="card-num" id="numDorso">226</div>
     <div class="card-copyright">© 2016 Hasbro SA.</div>
   </div>
 </div>
@@ -110,7 +110,8 @@ function obtenerNumero() {
     .then(r => r.json())
     .then(data => {
       numTarjeta = data.num;
-      document.getElementById('card-num').innerText = numTarjeta;
+      document.getElementById('numFrente').innerText = numTarjeta;
+      document.getElementById('numDorso').innerText = numTarjeta;
     });
 }
 
