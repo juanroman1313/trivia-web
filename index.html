@@ -109,8 +109,7 @@ function obtenerNumero() {
     .then(r => r.json())
     .then(data => {
       numTarjeta = data.num;
-      document.getElementById('numFrente').innerText = numTarjeta;
-      document.getElementById('numDorso').innerText = numTarjeta;
+      document.getElementById('card-num').innerText = numTarjeta;
     });
 }
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0j2AhejnkoCKXU155PPbeg6byWpjl_awBsy7rReNFoNCZjr5HWVg2WseAqe-r05mJJA/exec';
