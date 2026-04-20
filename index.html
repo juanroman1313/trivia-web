@@ -93,6 +93,9 @@ button:hover { background: #eee; }
 </div>
 
 <script>
+window.onload = function(){
+  obtenerNumero();
+}
 let numTarjeta = 0;
 function generar() {
   for (let i = 1; i <= 6; i++) {
@@ -100,6 +103,15 @@ function generar() {
     // Respuestas en negrita
     document.getElementById('pa' + i).innerHTML = '<strong>' + document.getElementById('a' + i).value + '</strong>';
   }
+}
+function obtenerNumero() {
+  fetch(SCRIPT_URL)
+    .then(r => r.json())
+    .then(data => {
+      numTarjeta = data.num;
+      document.getElementById('numFrente').innerText = numTarjeta;
+      document.getElementById('numDorso').innerText = numTarjeta;
+    });
 }
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0j2AhejnkoCKXU155PPbeg6byWpjl_awBsy7rReNFoNCZjr5HWVg2WseAqe-r05mJJA/exec';
 function enviarDrive() {
