@@ -14,27 +14,49 @@ h3 { font-size: 14px; color: #555; margin: 12px 0 6px; }
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-width: 520px; margin: 0 auto; }
 input { width: 100%; padding: 6px 10px; font-size: 13px; border: 1px solid #ccc; border-radius: 6px; }
 .btns { margin: 14px 0; }
-button { padding: 9px 20px; font-size: 13px; cursor: pointer; border: 1px solid #aaa; border-radius: 6px; background: #fff; margin: 0 6px; }
-button:hover { background: #eee; }
+button { padding: 9px 20px; font-size: 13px; cursor: pointer; border: 1px solid #aaa; border-radius: 6px; background: #fff; margin: 0 6px; transition: all 0.2s; }
+button:hover:not(:disabled) { background: #eee; }
+button:disabled { opacity: 0.5; cursor: not-allowed; background: #ddd; }
+
+/* BARRA DE PROGRESO */
+.progress-wrap {
+  max-width: 600px;
+  margin: 0 auto 10px;
+  display: none;
+}
+.progress-wrap.visible { display: block; }
+.progress-label {
+  font-size: 12px;
+  color: #63ff7d;
+  background-color: #555;
+  margin-bottom: 5px;
+  text-align: left;
+}
+.progress-bar-bg {
+  width: 100%;
+  height: 10px;
+  background: #5200d6;
+  border-radius: 5px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: #43ff43;
+  border-radius: 5px;
+  transition: width 0.4s ease;
+}
+
 .trivial-card { width: 480px; background: #1a2744; border-radius: 0; padding: 10px; margin: 16px auto; display: flex; height: 220px; }
-.trivial-inner { background: #fff; border-radius: 0; padding: 10px 14px 24px 10px; flex: 1; overflow: hidden; display: flex; flex-direction: column; gap:10px; position: relative;}
+.trivial-inner { background: #fff; border-radius: 0; padding: 10px 14px 24px 10px; flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 10px; position: relative; }
 .dorso-lateral { width: 80px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 0; }
 .dorso-lateral img { width: 120px; height: 90px; object-fit: contain; transform: rotate(-90deg); }
-.card-row { display: flex; align-items: center; gap: 9px; min-height: 22px;}
+.card-row { display: flex; align-items: center; gap: 9px; min-height: 22px; }
 .tri-svg { flex-shrink: 0; overflow: visible; }
 .card-text { font-size: 11px; color: #111; line-height: 1.10; flex: 1; text-align: left; font-family: 'EB Garamond', Georgia, serif; }
 .card-text strong { font-weight: 700; }
-.card-num { font-size: 11px; color: #000000; text-align: right; position: absolute; bottom: 6px; right: 12px; }
-.card-copyright {
-  font-size: 8px;
-  color: #000000;
-  position: absolute;
-  right: -25px;
-  top: 50%;
-  transform: translateY(-100%) rotate(-90deg);
-  white-space: nowrap;
-  font-family: Arial, sans-serif;
-}
+.card-num { font-size: 11px; color: #000; text-align: right; position: absolute; bottom: 6px; right: 12px; }
+.card-copyright { font-size: 8px; color: #000; position: absolute; right: -25px; top: 50%; transform: translateY(-100%) rotate(-90deg); white-space: nowrap; font-family: Arial, sans-serif; }
 </style>
 </head>
 <body>
@@ -59,7 +81,15 @@ button:hover { background: #eee; }
 </div>
 <div class="btns">
   <button onclick="generar()">Generar tarjetas</button>
-  <button onclick="enviarDrive()">Enviar a Drive</button>
+  <button id="btnDrive" onclick="enviarDrive()">Enviar a Drive</button>
+</div>
+
+<!-- BARRA DE PROGRESO -->
+<div class="progress-wrap" id="progressWrap">
+  <div class="progress-label" id="progressLabel">Preparando...</div>
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill" id="progressFill"></div>
+  </div>
 </div>
 
 <!-- CARA DELANTERA -->
@@ -94,20 +124,48 @@ button:hover { background: #eee; }
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0j2AhejnkoCKXU155PPbeg6byWpjl_awBsy7rReNFoNCZjr5HWVg2WseAqe-r05mJJA/exec';
+let numTarjeta = 0;
 window.onload = function(){
   obtenerNumero();
 }
-let numTarjeta = 0;
-function generar() {
-  obtenerNumero();
+function setProgress(pct, label) {
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').innerText = label;
+}
+
+function mostrarBarra() {
+  document.getElementById('progressWrap').classList.add('visible');
+}
+
+function ocultarBarra() {
+  document.getElementById('progressWrap').classList.remove('visible');
+  setProgress(0, '');
+}
+
+function bloquearBtn(state) {
+  document.getElementById('btnDrive').disabled = state;
+}
+
+function rellenarTarjetas() {
   for (let i = 1; i <= 6; i++) {
     document.getElementById('pq' + i).innerText = document.getElementById('q' + i).value;
-    // Respuestas en negrita
     document.getElementById('pa' + i).innerHTML = '<strong>' + document.getElementById('a' + i).value + '</strong>';
   }
 }
+
+function limpiarCampos(){
+  for (let i = 1; i <= 6; i++){
+    document.getElementById('q' + i).value = '';
+    document.getElementById('a' + i).value = '';
+  }
+}
+
+function generar() {
+  rellenarTarjetas();
+  obtenerNumero();
+}
 function obtenerNumero() {
-  fetch(SCRIPT_URL)
+  return fetch(SCRIPT_URL)
     .then(r => r.json())
     .then(data => {
       numTarjeta = data.num;
@@ -117,32 +175,64 @@ function obtenerNumero() {
 }
 
 function enviarDrive() {
-  generar();
-  const alturaFrente = document.getElementById('frente').offsetHeight;
-  document.getElementById('dorso').style.height = alturaFrente + 'px';
+  bloquearBtn(true);
+  mostrarBarra();
+  setProgress(5, 'Obteniendo número de tarjeta...');
 
-  document.fonts.ready.then(() => {
-    ['frente', 'dorso'].forEach((id, idx) => {
-      setTimeout(() => {
-        html2canvas(document.getElementById(id), { scale: 3, useCORS: true }).then(canvas => {
-          const base64 = canvas.toDataURL('image/png').split(',')[1];
-          fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-              image: base64,
-              name: 'tarjeta_' + id + '_' + numTarjeta + '.png'
-            })
-          }).then(() => {
-            if (id === 'dorso') {
-              alert('¡Tarjetas enviadas!');
+  // Primero obtenemos el número actualizado, luego procedemos
+  obtenerNumero().then(() => {
+    rellenarTarjetas();
+    setProgress(15, 'Preparando tarjetas...');
+
+    const alturaFrente = document.getElementById('frente').offsetHeight;
+    document.getElementById('dorso').style.height = alturaFrente + 'px';
+
+    document.fonts.ready.then(() => {
+      setProgress(25, 'Renderizando cara delantera...');
+
+      html2canvas(document.getElementById('frente'), { scale: 3, useCORS: true, allowTaint: true }).then(canvasFrente => {
+        setProgress(40, 'Enviando cara delantera a Drive...');
+        const base64Frente = canvasFrente.toDataURL('image/png').split(',')[1];
+
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ image: base64Frente, name: 'tarjeta_frente_' + numTarjeta + '.png' })
+        }).then(() => {
+          setProgress(60, 'Renderizando cara trasera...');
+
+          html2canvas(document.getElementById('dorso'), { scale: 3, useCORS: true, allowTaint: true }).then(canvasDorso => {
+            setProgress(80, 'Enviando cara trasera a Drive...');
+            const base64Dorso = canvasDorso.toDataURL('image/png').split(',')[1];
+
+            fetch(SCRIPT_URL, {
+              method: 'POST',
+              body: JSON.stringify({ image: base64Dorso, name: 'tarjeta_dorso_' + numTarjeta + '.png' })
+            }).then(() => {
+              setProgress(100, '¡Tarjetas enviadas correctamente!');
               numTarjeta++;
               document.getElementById('numFrente').innerText = numTarjeta;
               document.getElementById('numDorso').innerText = numTarjeta;
-            }
+              bloquearBtn(false);
+              setTimeout(ocultarBarra, 2500);
+            }).catch(e => {
+              console.error(e);
+              setProgress(0, 'Error al enviar la cara trasera.');
+              bloquearBtn(false);
+            });
           });
+          limpiarCampos();
+          generar();
+        }).catch(e => {
+          console.error(e);
+          setProgress(0, 'Error al enviar la cara delantera.');
+          bloquearBtn(false);
         });
-      }, idx * 700);
+      });
     });
+  }).catch(e => {
+    console.error(e);
+    setProgress(0, 'Error al conectar con Drive.');
+    bloquearBtn(false);
   });
 }
 </script>
