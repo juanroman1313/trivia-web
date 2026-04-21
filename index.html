@@ -189,6 +189,13 @@ function obtenerNumero() {
 }
 
 function enviarDrive() {
+  // Validar que todos los campos estén rellenos
+  for (let i = 1; i <= 6; i++) {
+    if (!document.getElementById('q' + i).value.trim() || !document.getElementById('a' + i).value.trim()) {
+      alert('Por favor rellena todas las preguntas y respuestas antes de enviar.');
+      return;
+    }
+  }
   bloquearBtn(true);
   mostrarBarra();
   setProgress(5, 'Obteniendo número de tarjeta...');
